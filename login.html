@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriPredict · Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#c9a84c;
+  --gold-light:#e8cc7a;
+  --green-deep:#0d2b0d;
+  --green-mid:#1a4a1a;
+  --green-bright:#2d7a2d;
+  --cream:#faf6ec;
+  --text-light:rgba(255,255,255,0.92);
+  --text-muted:rgba(255,255,255,0.55);
+}
+
+html,body{width:100%;height:100%;overflow:hidden}
+
+body{
+  font-family:'Jost',sans-serif;
+  background:var(--green-deep);
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ═══ SCENE LAYERS ════════════════════════════════════════════ */
+
+/* Sky gradient */
+.scene{
+  position:fixed;inset:0;
+  background:linear-gradient(
+    180deg,
+    #0a1628 0%,
+    #0f2545 12%,
+    #1a4a6e 28%,
+    #2a7a9e 44%,
+    #4ab0c8 58%,
+    #7dd4a8 70%,
+    #3a8a3a 80%,
+    #1a5a1a 90%,
+    #0d2b0d 100%
+  );
+}
+
+/* Stars */
+.stars{position:absolute;inset:0;overflow:hidden}
+.star{
+  position:absolute;border-radius:50%;
+  background:#fff;
+  animation:twinkle ease-in-out infinite;
+}
+@keyframes twinkle{
+  0%,100%{opacity:0.8;transform:scale(1)}
+  50%{opacity:0.2;transform:scale(0.6)}
+}
+
+/* Moon */
+.moon{
+  position:absolute;top:5%;right:12%;
+  width:70px;height:70px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fdf8d0,#f0d060 50%,#c8a840);
+  box-shadow:0 0 40px 15px rgba(240,208,80,0.3),0 0 80px 40px rgba(200,168,64,0.1);
+  animation:moonGlow 5s ease-in-out infinite;
+}
+@keyframes moonGlow{
+  0%,100%{box-shadow:0 0 40px 15px rgba(240,208,80,0.3),0 0 80px 40px rgba(200,168,64,0.1)}
+  50%{box-shadow:0 0 60px 25px rgba(240,208,80,0.45),0 0 120px 60px rgba(200,168,64,0.18)}
+}
+
+/* Fireflies */
+.firefly{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  background:#aaff00;
+  box-shadow:0 0 8px 2px rgba(170,255,0,0.8);
+  animation:fireflyFloat ease-in-out infinite;
+}
+@keyframes fireflyFloat{
+  0%{transform:translate(0,0);opacity:0}
+  20%{opacity:1}
+  80%{opacity:0.8}
+  100%{transform:translate(var(--dx),var(--dy));opacity:0}
+}
+
+/* Clouds */
+.cloud{
+  position:absolute;
+  background:rgba(255,255,255,0.12);
+  border-radius:60px;
+  filter:blur(8px);
+  animation:drift linear infinite;
+}
+@keyframes drift{from{transform:translateX(-200px)}to{transform:translateX(110vw)}}
+
+/* Mountains */
+.mountains{position:absolute;bottom:28%;left:0;right:0;height:25%}
+.mtn{position:absolute;bottom:0;width:0;height:0;border-left:solid transparent;border-right:solid transparent;border-bottom:solid}
+.mtn1{left:-2%;border-left-width:180px;border-right-width:180px;border-bottom-width:220px;border-bottom-color:#0d2b0d;filter:brightness(0.6)}
+.mtn2{left:18%;border-left-width:220px;border-right-width:220px;border-bottom-width:280px;border-bottom-color:#1a3d1a;filter:brightness(0.7)}
+.mtn3{left:42%;border-left-width:160px;border-right-width:160px;border-bottom-width:200px;border-bottom-color:#0d2b0d;filter:brightness(0.55)}
+.mtn4{right:15%;border-left-width:200px;border-right-width:200px;border-bottom-width:260px;border-bottom-color:#152b15;filter:brightness(0.65)}
+.mtn5{right:-2%;border-left-width:140px;border-right-width:140px;border-bottom-width:190px;border-bottom-color:#0d2b0d;filter:brightness(0.5)}
+
+/* Rolling hills */
+.hills{
+  position:absolute;bottom:20%;left:0;right:0;height:18%;
+  background:radial-gradient(ellipse 60% 100% at 30% 100%,#1e5a1e,transparent),
+             radial-gradient(ellipse 50% 100% at 70% 100%,#1a4a1a,transparent);
+}
+
+/* Ground */
+.ground{
+  position:absolute;bottom:0;left:0;right:0;height:25%;
+  background:linear-gradient(180deg,#2a6a1a 0%,#1a4a0d 30%,#0d2b06 70%,#061506 100%);
+}
+
+/* Wheat field rows */
+.wheat-field{
+  position:absolute;bottom:0;left:0;right:0;height:100%;
+  display:flex;align-items:flex-end;
+  overflow:hidden;
+}
+.wheat-stalk{
+  display:flex;flex-direction:column;align-items:center;
+  animation:wheatSway ease-in-out infinite;
+  transform-origin:bottom center;
+}
+.w-ear{
+  width:6px;height:20px;
+  background:linear-gradient(to bottom,#c9a84c,#8b6914);
+  border-radius:3px 3px 0 0;
+  position:relative;
+}
+.w-ear::before,.w-ear::after{
+  content:'';position:absolute;
+  width:5px;height:8px;
+  background:#a07820;
+  border-radius:50%;
+}
+.w-ear::before{top:2px;left:-4px;transform:rotate(-25deg)}
+.w-ear::after{top:2px;right:-4px;transform:rotate(25deg)}
+.w-stem{width:1.5px;background:linear-gradient(to top,#3a6a1a,#6a9a2a);border-radius:1px}
+@keyframes wheatSway{
+  0%,100%{transform:rotate(-4deg)}
+  50%{transform:rotate(4deg)}
+}
+
+/* Trees silhouette */
+.tree{position:absolute;bottom:0}
+.tree-trunk{width:10px;background:#1a0f06;margin:0 auto}
+.tree-top{
+  border-left:25px solid transparent;
+  border-right:25px solid transparent;
+  border-bottom:60px solid #0d2b0d;
+  margin:0 auto;
+}
+
+/* ═══ LOGIN CARD ══════════════════════════════════════════════ */
+.login-container{
+  position:relative;z-index:20;
+  width:100%;max-width:430px;
+  padding:2rem;
+}
+
+.card{
+  background:rgba(13,43,13,0.55);
+  backdrop-filter:blur(28px) saturate(1.4);
+  border:1px solid rgba(201,168,76,0.25);
+  border-radius:24px;
+  padding:3rem 2.5rem 2.5rem;
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(201,168,76,0.08) inset,
+    inset 0 1px 0 rgba(255,255,255,0.07);
+  animation:cardReveal 0.9s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes cardReveal{
+  from{opacity:0;transform:translateY(50px) scale(0.94)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* Brand */
+.brand{text-align:center;margin-bottom:2.4rem}
+.brand-emblem{
+  width:80px;height:80px;margin:0 auto 1.2rem;
+  background:linear-gradient(135deg,var(--green-mid),var(--green-bright));
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.4rem;
+  border:2px solid rgba(201,168,76,0.4);
+  box-shadow:0 8px 30px rgba(0,0,0,0.4),0 0 0 8px rgba(201,168,76,0.06);
+  animation:emblemFloat 4s ease-in-out infinite;
+}
+@keyframes emblemFloat{
+  0%,100%{transform:translateY(0) rotate(-2deg)}
+  50%{transform:translateY(-8px) rotate(2deg)}
+}
+.brand h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.2rem;font-weight:600;
+  color:var(--text-light);letter-spacing:1px;
+}
+.brand h1 em{color:var(--gold);font-style:normal}
+.brand-tagline{
+  font-size:0.78rem;color:var(--text-muted);
+  letter-spacing:2px;text-transform:uppercase;
+  margin-top:0.4rem;
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+}
+
+/* Divider */
+.gold-line{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin-bottom:2rem;opacity:0.4;
+}
+
+/* Form inputs */
+.field{margin-bottom:1.3rem}
+.field label{
+  display:block;font-size:0.72rem;font-weight:500;
+  color:var(--gold-light);letter-spacing:1.5px;text-transform:uppercase;
+  margin-bottom:0.5rem;
+}
+.input-wrapper{position:relative}
+.field-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  font-size:1rem;pointer-events:none;opacity:0.7;
+}
+.field input{
+  width:100%;
+  padding:0.85rem 1rem 0.85rem 2.8rem;
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(201,168,76,0.2);
+  border-radius:12px;
+  color:var(--text-light);
+  font-size:0.95rem;font-family:'Jost',sans-serif;
+  transition:border-color 0.25s,background 0.25s,box-shadow 0.25s;
+  outline:none;
+}
+.field input::placeholder{color:rgba(255,255,255,0.28)}
+.field input:focus{
+  border-color:var(--gold);
+  background:rgba(255,255,255,0.11);
+  box-shadow:0 0 0 3px rgba(201,168,76,0.15);
+}
+.pw-eye{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:rgba(255,255,255,0.4);
+  cursor:pointer;font-size:1rem;padding:0;transition:color 0.2s;
+}
+.pw-eye:hover{color:var(--gold)}
+
+/* Options row */
+.options-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:1.6rem;
+}
+.check-label{
+  display:flex;align-items:center;gap:0.5rem;
+  font-size:0.8rem;color:var(--text-muted);cursor:pointer;
+  user-select:none;
+}
+.check-label input{accent-color:var(--gold);width:14px;height:14px}
+.forgot{font-size:0.8rem;color:var(--gold-light);text-decoration:none;opacity:0.8}
+.forgot:hover{opacity:1;text-decoration:underline}
+
+/* Error */
+.error-banner{
+  background:rgba(180,30,30,0.25);
+  border:1px solid rgba(220,60,60,0.5);
+  border-radius:10px;padding:0.65rem 1rem;
+  font-size:0.83rem;color:#ffaaaa;
+  margin-bottom:1rem;
+  display:none;
+  animation:shake 0.45s ease;
+}
+.error-banner.visible{display:block}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-8px)}
+  40%,80%{transform:translateX(8px)}
+}
+
+/* Submit button */
+.btn-signin{
+  width:100%;padding:1rem;
+  background:linear-gradient(135deg,#1e5a1e 0%,#2d7a2d 50%,#3a9a3a 100%);
+  border:1px solid rgba(201,168,76,0.3);
+  border-radius:14px;
+  color:#fff;font-size:1rem;font-weight:500;font-family:'Jost',sans-serif;
+  letter-spacing:0.5px;cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.btn-signin::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.12));
+  opacity:0;transition:opacity 0.3s;
+}
+.btn-signin:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 35px rgba(45,122,45,0.45);
+}
+.btn-signin:hover::before{opacity:1}
+.btn-signin:active{transform:translateY(0)}
+.spin{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;
+  border-radius:50%;animation:sp 0.65s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* Demo hint */
+.demo-box{
+  margin-top:1.5rem;
+  background:rgba(201,168,76,0.1);
+  border:1px solid rgba(201,168,76,0.2);
+  border-radius:10px;padding:0.75rem 1rem;
+  text-align:center;font-size:0.8rem;color:var(--text-muted);
+}
+.demo-box strong{color:var(--gold-light)}
+
+/* Footer */
+.card-foot{
+  text-align:center;margin-top:1.4rem;
+  font-size:0.72rem;color:rgba(255,255,255,0.28);
+  letter-spacing:0.3px;
+}
+
+/* Season badge */
+.season-badge{
+  position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(90deg,#1a5a1a,#2d8a2d);
+  border:1px solid rgba(201,168,76,0.4);
+  border-radius:20px;padding:0.3rem 1.2rem;
+  font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--gold-light);white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- ── SCENE ── -->
+<div class="scene">
+  <div class="stars" id="stars"></div>
+  <div class="moon"></div>
+
+  <!-- Clouds -->
+  <div class="cloud" style="width:200px;height:50px;top:15%;left:-200px;animation-duration:40s;animation-delay:-5s;opacity:0.6"></div>
+  <div class="cloud" style="width:140px;height:35px;top:22%;left:-150px;animation-duration:55s;animation-delay:-20s;opacity:0.4"></div>
+  <div class="cloud" style="width:180px;height:45px;top:10%;left:-200px;animation-duration:48s;animation-delay:-33s;opacity:0.5"></div>
+
+  <!-- Mountains -->
+  <div class="mountains">
+    <div class="mtn mtn1"></div>
+    <div class="mtn mtn2"></div>
+    <div class="mtn mtn3"></div>
+    <div class="mtn mtn4"></div>
+    <div class="mtn mtn5"></div>
+  </div>
+
+  <div class="hills"></div>
+
+  <!-- Ground -->
+  <div class="ground">
+    <div class="wheat-field" id="wheatField"></div>
+  </div>
+
+  <!-- Fireflies -->
+  <div id="fireflies"></div>
+</div>
+
+<!-- ── LOGIN CARD ── -->
+<div class="login-container">
+  <div class="card" style="position:relative">
+    <div class="season-badge">🌾 Harvest Season 2024</div>
+
+    <div class="brand">
+      <div class="brand-emblem">🌾</div>
+      <h1>Agri<em>Predict</em></h1>
+      <div class="brand-tagline">Intelligent Crop Yield Forecasting</div>
+    </div>
+
+    <div class="gold-line"></div>
+
+    <div class="error-banner" id="errBanner">⚠ Invalid credentials. Please try again.</div>
+
+    <div class="field">
+      <label>Username</label>
+      <div class="input-wrapper">
+        <span class="field-icon">👤</span>
+        <input type="text" id="username" placeholder="Enter username" autocomplete="username">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrapper">
+        <span class="field-icon">🔒</span>
+        <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
+        <button class="pw-eye" id="eyeBtn" type="button">👁</button>
+      </div>
+    </div>
+
+    <div class="options-row">
+      <label class="check-label">
+        <input type="checkbox" id="rememberMe"> Remember me
+      </label>
+      <a href="#" class="forgot">Forgot password?</a>
+    </div>
+
+    <button class="btn-signin" id="signinBtn" onclick="doLogin()">
+      🌱 Sign In to Dashboard
+    </button>
+
+    <div class="demo-box">
+      Demo → Username: <strong>admin</strong> &nbsp;·&nbsp; Password: <strong>agri2024</strong>
+    </div>
+
+    <div class="card-foot">AgriPredict v1.0 &nbsp;·&nbsp; Empowering Farmers with AI &nbsp;·&nbsp; 🌍</div>
+  </div>
+</div>
+
+<script>
+/* ── Stars ──────────────────────────────────────────────────── */
+(function buildStars(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<160;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random()*2.5+0.5;
+    s.style.cssText = `
+      width:${sz}px;height:${sz}px;
+      top:${Math.random()*65}%;left:${Math.random()*100}%;
+      animation-duration:${2+Math.random()*4}s;
+      animation-delay:${Math.random()*5}s;
+    `;
+    c.appendChild(s);
+  }
+})();
+
+/* ── Fireflies ───────────────────────────────────────────────── */
+(function buildFireflies(){
+  const c = document.getElementById('fireflies');
+  for(let i=0;i<25;i++){
+    const f = document.createElement('div');
+    f.className='firefly';
+    const dx = (Math.random()-0.5)*200, dy=(Math.random()-0.5)*150;
+    f.style.cssText=`
+      left:${Math.random()*100}%;top:${55+Math.random()*40}%;
+      --dx:${dx}px;--dy:${dy}px;
+      animation-duration:${4+Math.random()*6}s;
+      animation-delay:${Math.random()*8}s;
+    `;
+    c.appendChild(f);
+  }
+})();
+
+/* ── Wheat stalks ───────────────────────────────────────────── */
+(function buildWheat(){
+  const f = document.getElementById('wheatField');
+  for(let i=0;i<90;i++){
+    const d = document.createElement('div');
+    d.className='wheat-stalk';
+    const h = 45+Math.random()*70;
+    d.innerHTML=`<div class="w-ear"></div><div class="w-stem" style="height:${h}px"></div>`;
+    d.style.animationDuration=(2+Math.random()*2)+'s';
+    d.style.animationDelay=(Math.random()*2)+'s';
+    f.appendChild(d);
+  }
+})();
+
+/* ── Password toggle ────────────────────────────────────────── */
+document.getElementById('eyeBtn').addEventListener('click',()=>{
+  const pw=document.getElementById('password');
+  const b=document.getElementById('eyeBtn');
+  pw.type = pw.type==='password'?'text':'password';
+  b.textContent = pw.type==='password'?'👁':'🙈';
+});
+
+/* ── Enter key ───────────────────────────────────────────────── */
+['username','password'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{
+    if(e.key==='Enter') doLogin();
+  });
+});
+
+/* ── Login ───────────────────────────────────────────────────── */
+async function doLogin(){
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value;
+  const err  = document.getElementById('errBanner');
+  const btn  = document.getElementById('signinBtn');
+
+  err.classList.remove('visible');
+
+  if(!user||!pass){
+    err.textContent='⚠ Please enter both username and password.';
+    err.classList.add('visible'); return;
+  }
+
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span>Authenticating…';
+
+  try{
+    const res  = await fetch('/api/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:user,password:pass})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Login failed');
+
+    const store = document.getElementById('rememberMe').checked ? localStorage : sessionStorage;
+    store.setItem('agri_token', data.token);
+    store.setItem('agri_user',  data.username);
+
+    btn.innerHTML='✅ Welcome! Redirecting…';
+    setTimeout(()=>window.location.href='index.html', 700);
+  }catch(e){
+    err.textContent='⚠ '+(e.message||'Login failed');
+    err.classList.add('visible');
+    btn.disabled=false;
+    btn.innerHTML='🌱 Sign In to Dashboard';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "agripredict",
+  "version": "1.0.0",
+  "description": "Crop Yield Prediction using Machine Learning (Decision Tree)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "train": "python model.py"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "keywords": ["agriculture", "machine-learning", "crop-yield", "decision-tree", "nodejs"],
+  "author": "AgriPredict",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

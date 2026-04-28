@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriPredict · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a150a;
+  --surface:#111d11;
+  --surface2:#162316;
+  --surface3:#1d2e1d;
+  --border:rgba(45,122,45,0.22);
+  --leaf:#3d9a3d;
+  --leaf-bright:#4caf50;
+  --leaf-dark:#1e5a1e;
+  --gold:#c9a84c;
+  --gold-light:#e0c870;
+  --text:#dceadc;
+  --text-muted:#7aA07a;
+  --danger:#d94f4f;
+  --warn:#e09030;
+  --info:#3aaccc;
+  --r:14px;
+  --sh:0 4px 24px rgba(0,0,0,0.45);
+}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;line-height:1.6;overflow:hidden}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--leaf-dark);border-radius:3px}
+
+/* ═══ LAYOUT ═══════════════════════════════════════════════ */
+.shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── topbar ── */
+.topbar{
+  height:60px;flex-shrink:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;
+  z-index:50;position:relative;
+}
+.tb-brand{display:flex;align-items:center;gap:0.7rem}
+.tb-brand .ico{font-size:1.8rem}
+.tb-brand h1{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--leaf-bright)}
+.tb-brand h1 em{color:var(--gold);font-style:normal}
+.tb-right{display:flex;align-items:center;gap:0.75rem}
+
+.pill{
+  display:flex;align-items:center;gap:0.45rem;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:0.35rem 0.85rem;
+  font-size:0.8rem;color:var(--text-muted);cursor:pointer;
+  transition:border-color 0.2s;
+}
+.pill:hover{border-color:var(--leaf)}
+
+select.lang{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:8px;padding:0.3rem 0.5rem;font-size:0.8rem;
+}
+.btn-logout{
+  background:none;border:1px solid var(--danger);color:var(--danger);
+  border-radius:8px;padding:0.3rem 0.85rem;font-size:0.78rem;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-logout:hover{background:var(--danger);color:#fff}
+
+/* ── body row ── */
+.body-row{display:flex;flex:1;overflow:hidden}
+
+/* ── sidebar ── */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  overflow-y:auto;padding:1rem 0;
+}
+.nav-cat{
+  font-size:0.67rem;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:1.2px;padding:0.9rem 1.2rem 0.3rem;
+}
+.nav-item{
+  display:flex;align-items:center;gap:0.7rem;
+  padding:0.6rem 1.4rem;cursor:pointer;
+  font-size:0.87rem;color:var(--text-muted);
+  border-left:3px solid transparent;
+  transition:all 0.18s;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{
+  background:rgba(61,154,61,0.12);color:var(--leaf-bright);
+  border-left-color:var(--leaf-bright);
+}
+.nav-item .ni{font-size:1.05rem;width:20px;text-align:center}
+
+/* ── main ── */
+.main{flex:1;overflow-y:auto;padding:1.8rem}
+
+/* ── sections ── */
+.sec{display:none}
+.sec.on{display:block}
+
+/* ═══ COMPONENTS ════════════════════════════════════════════ */
+
+/* page header */
+.ph{margin-bottom:1.6rem}
+.ph h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem}
+.ph p{color:var(--text-muted);font-size:0.88rem;margin-top:0.2rem}
+
+/* card */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.4rem;box-shadow:var(--sh);
+}
+.ct{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.9px;
+  color:var(--text-muted);margin-bottom:1.1rem;display:flex;align-items:center;gap:0.5rem}
+
+/* grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+
+/* stat card */
+.scard{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.2rem;text-align:center;
+}
+.scard-ico{font-size:1.9rem;margin-bottom:0.4rem}
+.scard-val{font-size:1.9rem;font-weight:600;color:var(--leaf-bright)}
+.scard-lbl{font-size:0.76rem;color:var(--text-muted)}
+
+/* form */
+.fg{margin-bottom:1.15rem}
+.fl{
+  display:flex;align-items:center;gap:0.4rem;
+  font-size:0.76rem;font-weight:500;letter-spacing:0.6px;
+  text-transform:uppercase;color:var(--text-muted);margin-bottom:0.45rem;
+}
+.fi,.fsel{
+  width:100%;padding:0.72rem 0.9rem;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:0.92rem;font-family:inherit;
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+}
+.fi:focus,.fsel:focus{border-color:var(--leaf);box-shadow:0 0 0 3px rgba(61,154,61,0.15)}
+.fi.err{border-color:var(--danger)}
+.ferr{color:var(--danger);font-size:0.76rem;margin-top:0.25rem;display:none}
+.ferr.on{display:block}
+.fsel option{background:var(--surface)}
+.rrow{display:flex;align-items:center;gap:0.8rem}
+.frange{flex:1;accent-color:var(--leaf)}
+.rval{min-width:48px;text-align:right;font-size:0.88rem;color:var(--gold);font-weight:500}
+
+/* voice btn */
+.irow{display:flex;gap:0.5rem;margin-top:0.5rem}
+.vbtn{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text-muted);border-radius:10px;padding:0.72rem 0.8rem;
+  cursor:pointer;transition:all 0.2s;font-size:0.95rem;flex-shrink:0;
+}
+.vbtn:hover{color:var(--leaf);border-color:var(--leaf)}
+.vbtn.mic-on{color:var(--danger);border-color:var(--danger);animation:micBlink 0.9s infinite}
+@keyframes micBlink{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* buttons */
+.btn{
+  padding:0.75rem 1.4rem;border-radius:12px;
+  font-size:0.88rem;font-family:inherit;font-weight:500;
+  cursor:pointer;transition:all 0.2s;border:none;
+}
+.btn-p{background:linear-gradient(135deg,var(--leaf-dark),var(--leaf-bright));color:#fff}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(61,154,61,0.38)}
+.btn-s{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-s:hover{border-color:var(--leaf);color:var(--leaf)}
+.btn-g{background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.35)}
+.btn-g:hover{background:rgba(201,168,76,0.25)}
+.bw{width:100%}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:sp 0.65s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* result box */
+.rbox{
+  background:linear-gradient(135deg,rgba(30,90,30,0.6),rgba(61,154,61,0.15));
+  border:1px solid var(--leaf);border-radius:var(--r);
+  padding:1.5rem;text-align:center;
+  display:none;animation:fadeUp 0.45s ease;
+}
+.rbox.on{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.rbox-big{font-size:3rem;font-weight:600;color:var(--gold-light)}
+.rbox-unit{font-size:0.85rem;color:var(--text-muted)}
+
+/* warning chips */
+.chips{display:flex;flex-wrap:wrap;gap:0.45rem;margin-top:0.9rem}
+.chip{display:inline-flex;align-items:center;gap:0.35rem;padding:0.35rem 0.8rem;border-radius:20px;font-size:0.78rem}
+.chip-w{background:rgba(224,144,48,0.2);border:1px solid var(--warn);color:var(--warn)}
+.chip-d{background:rgba(217,79,79,0.2);border:1px solid var(--danger);color:var(--danger)}
+.chip-ok{background:rgba(61,154,61,0.2);border:1px solid var(--leaf);color:var(--leaf-bright)}
+
+/* crop card */
+.cropcard{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.1rem;
+  display:flex;align-items:center;gap:0.9rem;
+}
+.crop-ico{font-size:2.4rem}
+.crop-nm{font-size:1.05rem;font-weight:600;color:var(--gold-light)}
+.crop-ds{font-size:0.8rem;color:var(--text-muted);margin-top:0.15rem}
+
+/* table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.86rem}
+th{background:var(--surface2);color:var(--text-muted);font-weight:500;padding:0.75rem 0.9rem;
+  text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+td{padding:0.7rem 0.9rem;border-bottom:1px solid rgba(61,154,61,0.07);color:var(--text)}
+tr:hover td{background:rgba(61,154,61,0.04)}
+.badge{display:inline-block;padding:0.18rem 0.55rem;border-radius:6px;font-size:0.73rem}
+.bg-g{background:rgba(61,154,61,0.2);color:var(--leaf-bright)}
+.bg-a{background:rgba(201,168,76,0.2);color:var(--gold)}
+.bg-r{background:rgba(217,79,79,0.2);color:var(--danger)}
+
+/* weather */
+.wcard{
+  background:linear-gradient(135deg,var(--surface2),rgba(58,172,204,0.1));
+  border:1px solid rgba(58,172,204,0.2);border-radius:var(--r);padding:1.5rem;
+}
+.wtemp{font-size:3rem;font-weight:600;color:#b8e8f5}
+.wdesc{text-transform:capitalize;color:var(--text-muted);font-size:0.88rem}
+.wmeta{display:flex;gap:1.2rem;margin-top:0.9rem;flex-wrap:wrap}
+.wmeta-i{display:flex;align-items:center;gap:0.35rem;font-size:0.83rem;color:var(--text-muted)}
+
+/* AI */
+.ai-out{
+  background:var(--surface2);border:1px solid rgba(61,154,61,0.3);
+  border-radius:var(--r);padding:1.1rem;font-size:0.88rem;line-height:1.75;
+  min-height:90px;white-space:pre-wrap;
+}
+.typing-cur::after{content:'▋';animation:blink 0.75s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* map */
+.mgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;padding:1rem}
+.mcell{
+  aspect-ratio:1;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:600;cursor:pointer;
+  transition:transform 0.15s,box-shadow 0.15s;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.mcell:hover{transform:scale(1.12);box-shadow:0 4px 12px rgba(0,0,0,0.4);z-index:2;position:relative}
+
+/* download btn */
+.dl-btn{
+  display:inline-flex;align-items:center;gap:0.45rem;
+  background:var(--surface2);border:1px solid rgba(201,168,76,0.35);
+  color:var(--gold);border-radius:10px;padding:0.55rem 1.1rem;
+  font-size:0.82rem;cursor:pointer;transition:all 0.2s;font-family:inherit;
+}
+.dl-btn:hover{background:rgba(201,168,76,0.1)}
+
+/* hero bar */
+.hero{
+  background:linear-gradient(135deg,rgba(30,90,30,0.5),rgba(61,154,61,0.1));
+  border:1px solid var(--leaf);border-radius:var(--r);
+  padding:1.8rem;margin-bottom:1.4rem;
+  display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;
+}
+.hero-ico{font-size:3.5rem}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:var(--text)}
+.hero-sub{color:var(--text-muted);font-size:0.88rem;margin-top:0.2rem}
+
+/* language strings hidden */
+[data-en],[data-hi],[data-es],[data-fr],[data-te]{display:none}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .body-row{flex-direction:column}
+  .sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:0.5rem 0;display:flex;flex-wrap:wrap;overflow-x:auto}
+  .nav-cat{display:none}
+  .nav-item{flex-direction:column;gap:0.2rem;font-size:0.7rem;padding:0.5rem 0.8rem;border-left:none;border-bottom:3px solid transparent}
+  .nav-item.active{border-bottom-color:var(--leaf-bright);border-left-color:transparent}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .main{padding:1rem}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── TOP BAR ── -->
+<header class="topbar">
+  <div class="tb-brand">
+    <span class="ico">🌾</span>
+    <h1>Agri<em>Predict</em></h1>
+  </div>
+  <div class="tb-right">
+    <div class="pill" onclick="showSection('weather')" title="Weather">
+      <span id="tbWxIco">🌤</span><span id="tbWxTemp">--°C</span>
+    </div>
+    <select class="lang" id="langSel" onchange="setLang(this.value)">
+      <option value="en">🇬🇧 EN</option>
+      <option value="hi">🇮🇳 HI</option>
+      <option value="es">🇪🇸 ES</option>
+      <option value="fr">🇫🇷 FR</option>
+      <option value="te">🇮🇳 TE</option>
+    </select>
+    <div class="pill"><span id="tbUser">👤 Admin</span></div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div class="body-row">
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="nav-cat">Overview</div>
+  <div class="nav-item active" onclick="showSection('dash')">
+    <span class="ni">📊</span><span class="t">Dashboard</span>
+  </div>
+
+  <div class="nav-cat">Prediction</div>
+  <div class="nav-item" onclick="showSection('predict')">
+    <span class="ni">🔮</span><span class="t">Yield Predictor</span>
+  </div>
+  <div class="nav-item" onclick="showSection('smart')">
+    <span class="ni">🌱</span><span class="t">Smart Crops</span>
+  </div>
+  <div class="nav-item" onclick="showSection('ai')">
+    <span class="ni">🤖</span><span class="t">AI Advisor</span>
+  </div>
+
+  <div class="nav-cat">Analytics</div>
+  <div class="nav-item" onclick="showSection('history')">
+    <span class="ni">📁</span><span class="t">History</span>
+  </div>
+  <div class="nav-item" onclick="showSection('charts')">
+    <span class="ni">📈</span><span class="t">Charts</span>
+  </div>
+  <div class="nav-item" onclick="showSection('map')">
+    <span class="ni">📍</span><span class="t">Map View</span>
+  </div>
+
+  <div class="nav-cat">Data</div>
+  <div class="nav-item" onclick="showSection('weather')">
+    <span class="ni">🌦</span><span class="t">Weather</span>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+<!-- ══ DASHBOARD ══════════════════════════════════════════ -->
+<div class="sec on" id="sec-dash">
+  <div class="hero">
+    <span class="hero-ico">🌾</span>
+    <div>
+      <div class="hero-title">Welcome to AgriPredict</div>
+      <div class="hero-sub">AI-powered crop yield forecasting · Make data-driven farming decisions</div>
+    </div>
+  </div>
+
+  <div class="g4" style="margin-bottom:1.4rem">
+    <div class="scard"><div class="scard-ico">🔮</div><div class="scard-val" id="st-total">0</div><div class="scard-lbl">Total Predictions</div></div>
+    <div class="scard"><div class="scard-ico">📈</div><div class="scard-val" id="st-avg">--</div><div class="scard-lbl">Avg Yield (t/ha)</div></div>
+    <div class="scard"><div class="scard-ico">🌡️</div><div class="scard-val" id="st-temp">--</div><div class="scard-lbl">Last Temp (°C)</div></div>
+    <div class="scard"><div class="scard-ico">💧</div><div class="scard-val" id="st-hum">--</div><div class="scard-lbl">Last Humidity (%)</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ct">📊 Recent Predictions</div>
+      <canvas id="dashChart" height="210"></canvas>
+    </div>
+    <div class="card">
+      <div class="ct">🌱 Latest Result</div>
+      <div id="dashLatest" style="color:var(--text-muted);font-size:0.88rem;padding:1rem 0">
+        No predictions yet. Go to Yield Predictor to start.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PREDICT ════════════════════════════════════════════ -->
+<div class="sec" id="sec-predict">
+  <div class="ph"><h2>🔮 Yield Predictor</h2><p>Enter field conditions to get a yield forecast</p></div>
+
+  <div class="g2">
+
+    <!-- Input form -->
+    <div class="card">
+      <div class="ct">📝 Input Parameters</div>
+
+      <!-- Temperature -->
+      <div class="fg">
+        <div class="fl">🌡️ Temperature (°C)</div>
+        <div class="rrow">
+          <input type="range" class="frange" id="rTemp" min="5" max="50" value="25" oninput="syncR('temp')">
+          <span class="rval" id="rvTemp">25</span>
+        </div>
+        <div class="irow">
+          <input class="fi" type="number" id="iTemp" value="25" min="5" max="50" placeholder="5–50 °C" oninput="syncI('temp')">
+          <button class="vbtn" id="vTemp" onclick="voiceInput('temp')" title="Voice input">🎤</button>
+        </div>
+        <div class="ferr" id="eTemp">⚠ Enter a number between 5 and 50</div>
+      </div>
+
+      <!-- Rainfall -->
+      <div class="fg">
+        <div class="fl">🌧️ Rainfall (mm/year)</div>
+        <div class="rrow">
+          <input type="range" class="frange" id="rRain" min="100" max="3000" value="800" oninput="syncR('rain')">
+          <span class="rval" id="rvRain">800</span>
+        </div>
+        <div class="irow">
+          <input class="fi" type="number" id="iRain" value="800" min="100" max="3000" placeholder="100–3000 mm" oninput="syncI('rain')">
+          <button class="vbtn" id="vRain" onclick="voiceInput('rain')" title="Voice input">🎤</button>
+        </div>
+        <div class="ferr" id="eRain">⚠ Enter a number between 100 and 3000</div>
+      </div>
+
+      <!-- Humidity -->
+      <div class="fg">
+        <div class="fl">💧 Humidity (%)</div>
+        <div class="rrow">
+          <input type="range" class="frange" id="rHum" min="10" max="100" value="70" oninput="syncR('hum')">
+          <span class="rval" id="rvHum">70</span>
+        </div>
+        <div class="irow">
+          <input class="fi" type="number" id="iHum" value="70" min="10" max="100" placeholder="10–100 %" oninput="syncI('hum')">
+          <button class="vbtn" id="vHum" onclick="voiceInput('hum')" title="Voice input">🎤</button>
+        </div>
+        <div class="ferr" id="eHum">⚠ Enter a number between 10 and 100</div>
+      </div>
+
+      <!-- Soil type -->
+      <div class="fg">
+        <div class="fl">🌍 Soil Type</div>
+        <select class="fsel" id="soilSel">
+          <option value="Loamy">🟫 Loamy — Best all-round fertility</option>
+          <option value="Clay">🔶 Clay — High water retention</option>
+          <option value="Sandy">🟡 Sandy — Fast drainage</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:0.8rem">
+        <button class="btn btn-p" id="predBtn" onclick="runPredict()" style="flex:1">🌾 Predict Yield</button>
+        <button class="btn btn-s" onclick="resetForm()">🔄 Reset</button>
+      </div>
+    </div>
+
+    <!-- Result panel -->
+    <div class="card">
+      <div class="ct">📊 Prediction Result</div>
+
+      <div id="noResult" style="color:var(--text-muted);font-size:0.88rem;text-align:center;padding:2.5rem 0">
+        🌱 Awaiting prediction…
+      </div>
+
+      <div class="rbox" id="rbox">
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.4rem">Predicted Yield</div>
+        <div class="rbox-big" id="rboxVal">--</div>
+        <div class="rbox-unit">tons / hectare</div>
+        <div class="chips" id="warnChips"></div>
+      </div>
+
+      <div id="cropWrap" style="margin-top:1.1rem;display:none">
+        <div class="ct">🌱 Crop Suggestion</div>
+        <div class="cropcard">
+          <span class="crop-ico" id="cropIco">🌾</span>
+          <div>
+            <div class="crop-nm" id="cropNm">--</div>
+            <div class="crop-ds" id="cropDs">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem;text-align:right;display:none" id="dlWrap">
+        <button class="dl-btn" onclick="downloadReport()">📄 Download Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="card" style="margin-top:1.4rem">
+    <div class="ct">📈 Prediction vs Input Values</div>
+    <canvas id="predChart" height="110"></canvas>
+  </div>
+</div>
+
+<!-- ══ SMART CROPS ═════════════════════════════════════════ -->
+<div class="sec" id="sec-smart">
+  <div class="ph"><h2>🌱 Smart Crop Recommendation</h2><p>Detailed suitability scores for your current conditions</p></div>
+  <div class="g3" id="smartGrid"></div>
+  <div class="card" style="margin-top:1.4rem">
+    <div class="ct">📊 Crop Suitability Radar</div>
+    <canvas id="radarChart" height="220"></canvas>
+  </div>
+</div>
+
+<!-- ══ AI ADVISOR ══════════════════════════════════════════ -->
+<div class="sec" id="sec-ai">
+  <div class="ph"><h2>🤖 AI Farming Advisor</h2><p>Personalised AI-powered recommendations based on your inputs</p></div>
+  <div class="card">
+    <div class="ct">💬 Ask the Advisor</div>
+    <div class="fg">
+      <textarea class="fi" id="aiQ" rows="3"
+        placeholder="e.g. What fertilizer for wheat in clay soil? How to improve yield during low rainfall?"></textarea>
+    </div>
+    <button class="btn btn-p" onclick="askAI()">🤖 Get AI Advice</button>
+    <div style="margin-top:1.1rem">
+      <div class="ct">💡 Response</div>
+      <div class="ai-out" id="aiOut">Ask a question above to receive personalised farming advice…</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.4rem">
+    <div class="ct">⚡ Quick Tips</div>
+    <div class="g3" id="tipsGrid"></div>
+  </div>
+</div>
+
+<!-- ══ HISTORY ═════════════════════════════════════════════ -->
+<div class="sec" id="sec-history">
+  <div class="ph"><h2>📁 Prediction History</h2><p>All past predictions stored in your browser</p></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div class="ct" style="margin:0">📋 Records</div>
+      <div style="display:flex;gap:0.6rem">
+        <button class="dl-btn" onclick="exportCSV()">📥 Export CSV</button>
+        <button class="btn btn-s" style="padding:0.4rem 0.9rem;font-size:0.78rem" onclick="clearHistory()">🗑 Clear All</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Date & Time</th><th>Temp (°C)</th>
+            <th>Rain (mm)</th><th>Hum (%)</th><th>Soil</th>
+            <th>Yield (t/ha)</th><th>Crop</th>
+          </tr>
+        </thead>
+        <tbody id="histBody">
+          <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">No records yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHARTS ══════════════════════════════════════════════ -->
+<div class="sec" id="sec-charts">
+  <div class="ph"><h2>📈 Yield Visualization Dashboard</h2></div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct">📊 Yield Over Time</div>
+      <canvas id="lineChart" height="210"></canvas>
+    </div>
+    <div class="card">
+      <div class="ct">🍩 Yield by Soil Type</div>
+      <canvas id="donutChart" height="210"></canvas>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1.4rem">
+    <div class="ct">🌡️ Temperature vs Yield</div>
+    <canvas id="scatterChart" height="200"></canvas>
+  </div>
+</div>
+
+<!-- ══ MAP ══════════════════════════════════════════════════ -->
+<div class="sec" id="sec-map">
+  <div class="ph"><h2>📍 Map-based Prediction</h2><p>Click a region tile to simulate yield for that zone</p></div>
+  <div class="card">
+    <div class="ct">🗺 India Yield Heatmap (Simulated)</div>
+    <div class="mgrid" id="mapGrid"></div>
+  </div>
+  <div class="card" style="margin-top:1.4rem" id="mapResCard">
+    <div class="ct">📊 Selected Region</div>
+    <div id="mapResBody" style="color:var(--text-muted)">Click a tile above to see simulated yield data</div>
+  </div>
+</div>
+
+<!-- ══ WEATHER ═════════════════════════════════════════════ -->
+<div class="sec" id="sec-weather">
+  <div class="ph"><h2>🌦 Weather Forecast</h2><p>Real-time conditions for smarter field decisions</p></div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct">🔍 Search City</div>
+      <div class="fg">
+        <input class="fi" id="cityIn" value="Mumbai" placeholder="Enter city name">
+      </div>
+      <button class="btn btn-p bw" onclick="fetchWeather()">🌐 Get Weather</button>
+
+      <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.5rem" id="cityChips">
+        <!-- quick city chips -->
+      </div>
+    </div>
+    <div class="wcard" id="wxCard">
+      <div style="font-size:2.8rem" id="wxIco">🌤</div>
+      <div class="wtemp" id="wxTemp">--°C</div>
+      <div class="wdesc" id="wxDesc">Fetching…</div>
+      <div class="wmeta">
+        <div class="wmeta-i">💧 <span id="wxHum">--</span>%</div>
+        <div class="wmeta-i">🌧 <span id="wxRain">--</span>mm</div>
+        <div class="wmeta-i">💨 <span id="wxWind">--</span>m/s</div>
+        <div class="wmeta-i">📍 <span id="wxCity">--</span></div>
+      </div>
+      <div style="margin-top:1rem">
+        <button class="btn btn-p" style="font-size:0.8rem;padding:0.55rem 1rem" onclick="autofill()">
+          📥 Autofill Predictor
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
