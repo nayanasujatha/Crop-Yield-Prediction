@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: agrimind-ai
+    env: python
+    pythonVersion: "3.11"
+    buildCommand: pip install scikit-learn pandas numpy flask && npm install && python model.py
+    startCommand: node server.js
+    envVars:
+      - key: JWT_SECRET
+        value: agrimind_secret_2024
+      - key: PYTHON_CMD
+        value: python3
+      - key: PORT
+        value: 10000
